@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import StarRating from "./StarRating";
+import { useState } from "react";
 
 const content = [
   {
@@ -19,54 +18,19 @@ const content = [
   },
 ];
 
-const average = (arr) =>
-  arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
-
-const KEY = "f84fc31d";
-
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
-
   return (
-    <>
-      <Navbar>
-        <Logo />
-        <Search />
-        <NumResults movies={movies} />
-      </Navbar>
-
-      <Main>
-        <Box>
-          <MovieList movies={movies} />
-        </Box>
-        <Box>
-          <WatchedSummary watched={watched} />
-          <WatchedMoviesList watched={watched} />
-        </Box>
-      </Main>
-    </>
-  );
-}
-
-const average = (arr) =>
-  arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
-
-function Navbar({ children }) {
-  return <nav className="nav-bar">{children}</nav>;
-}
-
-function Logo() {
-  return (
-    <div className="logo">
-      <span role="img">🍿</span>
-      <h1>usePopcorn</h1>
+    <div>
+      <Tabbed content={content} />
     </div>
   );
 }
 
-function Search() {
-  const [query, setQuery] = useState("");
+// console.log(<DifferentContent test={23} />);
+// console.log(DifferentContent());
+
+function Tabbed({ content }) {
+  const [activeTab, setActiveTab] = useState(0);
 
   return (
     <div>
@@ -74,140 +38,92 @@ function Search() {
         <Tab num={0} activeTab={activeTab} onClick={setActiveTab} />
         <Tab num={1} activeTab={activeTab} onClick={setActiveTab} />
         <Tab num={2} activeTab={activeTab} onClick={setActiveTab} />
+
         <Tab num={3} activeTab={activeTab} onClick={setActiveTab} />
       </div>
 
-function NumResults({ movies }) {
-  return (
-    <p className="num-results">
-      Found <strong>{movies.length}</strong> results
-    </p>
-  );
-}
-
-function Main({ children }) {
-  return <main className="main">{children}</main>;
-}
-
-function Box({ children }) {
-  const [isOpen, setIsOpen] = useState(true);
-  return (
-    <div className="box">
-      <button className="btn-toggle" onClick={() => setIsOpen((open) => !open)}>
-        {isOpen ? "–" : "+"}
-      </button>
-      {isOpen && children}
+      {activeTab <= 2 ? (
+        <TabContent
+          item={content.at(activeTab)}
+          key={content.at(activeTab).summary}
+        />
+      ) : (
+        <DifferentContent />
+      )}
     </div>
   );
 }
 
-// function WatchedBox() {
-//   const [watched, setWatched] = useState(tempWatchedData);
-
-//   const [isOpen2, setIsOpen2] = useState(true);
-
-//   return (
-//     <div className="box">
-//       <button
-//         className="btn-toggle"
-//         onClick={() => setIsOpen2((open) => !open)}
-//       >
-//         {isOpen2 ? "–" : "+"}
-//       </button>
-//       {isOpen2 && (
-//         <>
-//           <WatchedSummary watched={watched} />
-
-//           <WatchedMoviesList watched={watched} />
-//         </>
-//       )}
-//     </div>
-//   );
-// }
-
-function MovieList({ movies }) {
+function Tab({ num, activeTab, onClick }) {
   return (
-    <ul className="list">
-      {movies?.map((movie) => (
-        <Movie movie={movie} key={movie.imdbID} />
-      ))}
-    </ul>
+    <button
+      className={activeTab === num ? "tab active" : "tab"}
+      onClick={() => onClick(num)}
+    >
+      Tab {num + 1}
+    </button>
   );
 }
 
-function Movie({ movie }) {
+function TabContent({ item }) {
+  const [showDetails, setShowDetails] = useState(true);
+  const [likes, setLikes] = useState(0);
+
+  console.log("RENDER");
+
+  function handleInc() {
+    setLikes((likes) => likes + 1);
+  }
+
+  function handleTripleInc() {
+    // setLikes(likes + 1);
+    // setLikes(likes + 1);
+    // setLikes(likes + 1);
+
+    setLikes((likes) => likes + 1);
+    setLikes((likes) => likes + 1);
+    setLikes((likes) => likes + 1);
+  }
+
+  function handleUndo() {
+    setShowDetails(true);
+    setLikes(0);
+    console.log(likes);
+  }
+
+  function handleUndoLater() {
+    setTimeout(handleUndo, 2000);
+  }
+
   return (
-    <li>
-      <img src={movie.Poster} alt={`${movie.Title} poster`} />
-      <h3>{movie.Title}</h3>
-      <div>
-        <p>
-          <span>🗓</span>
-          <span>{movie.Year}</span>
-        </p>
+    <div className="tab-content">
+      <h4>{item.summary}</h4>
+      {showDetails && <p>{item.details}</p>}
+
+      <div className="tab-actions">
+        <button onClick={() => setShowDetails((h) => !h)}>
+          {showDetails ? "Hide" : "Show"} details
+        </button>
+
+        <div className="hearts-counter">
+          <span>{likes} ❤️</span>
+          <button onClick={handleInc}>+</button>
+          <button onClick={handleTripleInc}>+++</button>
+        </div>
       </div>
-    </li>
-  );
-}
 
-function WatchedSummary({ watched }) {
-  const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
-  const avgUserRating = average(watched.map((movie) => movie.userRating));
-  const avgRuntime = average(watched.map((movie) => movie.runtime));
-  return (
-    <div className="summary">
-      <h2>Movies you watched</h2>
-      <div>
-        <p>
-          <span>#️⃣</span>
-          <span>{watched.length} movies</span>
-        </p>
-        <p>
-          <span>⭐️</span>
-          <span>{avgImdbRating}</span>
-        </p>
-        <p>
-          <span>🌟</span>
-          <span>{avgUserRating}</span>
-        </p>
-        <p>
-          <span>⏳</span>
-          <span>{avgRuntime} min</span>
-        </p>
+      <div className="tab-undo">
+        <button onClick={handleUndo}>Undo</button>
+        <button onClick={handleUndoLater}>Undo in 2s</button>
       </div>
     </div>
   );
 }
 
-function WatchedMoviesList({ watched }) {
+function DifferentContent() {
   return (
-    <ul className="list">
-      {watched.map((movie) => (
-        <WatchedMovie movie={movie} key={movie.imdbID} />
-      ))}
-    </ul>
-  );
-}
-
-function WatchedMovie({ movie }) {
-  return (
-    <li>
-      <img src={movie.Poster} alt={`${movie.Title} poster`} />
-      <h3>{movie.Title}</h3>
-      <div>
-        <p>
-          <span>⭐️</span>
-          <span>{movie.imdbRating}</span>
-        </p>
-        <p>
-          <span>🌟</span>
-          <span>{movie.userRating}</span>
-        </p>
-        <p>
-          <span>⏳</span>
-          <span>{movie.runtime} min</span>
-        </p>
-      </div>
-    </li>
+    <div className="tab-content">
+      <h4>I'm a DIFFERENT tab, so I reset state 💣💥</h4>
+    </div>
   );
 }
